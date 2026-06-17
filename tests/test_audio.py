@@ -18,6 +18,30 @@ class AudioValueTests(unittest.TestCase):
         self.assertEqual(audio, [0.0, 0.1])
         self.assertEqual(sample_rate, 24000)
 
+    def test_torchcodec_like_decoder(self):
+        class FakeTensor:
+            def detach(self):
+                return self
+
+            def cpu(self):
+                return self
+
+            def numpy(self):
+                return [[0.0, 0.1, -0.1]]
+
+        class FakeSamples:
+            data = FakeTensor()
+            sample_rate = 24000
+
+        class FakeDecoder:
+            def get_all_samples(self):
+                return FakeSamples()
+
+        audio, sample_rate = audio_from_dataset_value(FakeDecoder())
+
+        self.assertEqual(audio, [[0.0, 0.1, -0.1]])
+        self.assertEqual(sample_rate, 24000)
+
     def test_unexpected_value_has_type_in_error(self):
         with self.assertRaisesRegex(ValueError, "recebido int"):
             audio_from_dataset_value(123)
@@ -25,4 +49,3 @@ class AudioValueTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -4,6 +4,7 @@ from collections.abc import Iterable
 import sys
 from typing import Any
 
+from .audio import audio_from_dataset_value
 from .config import AppConfig
 from .io import read_json, write_json
 from .paths import labels_path, prepare_summary_path
@@ -193,6 +194,38 @@ def load_or_prepare_label_map(config: AppConfig) -> dict[str, Any]:
         return read_json(path)
     prepare_data(config)
     return read_json(path)
+
+
+def inspect_audio_sample(config: AppConfig, split: str | None = None, index: int = 0) -> dict[str, Any]:
+    split_name = split or config.dataset.train_split
+    dataset = load_dataset_split(config, split_name, max_samples=index + 1)
+    validate_dataset_columns(dataset, config)
+    if index >= len(dataset):
+        raise IndexError(f"Indice {index} fora do split `{split_name}` com {len(dataset)} linhas.")
+
+    row = dataset[index]
+    audio_value = row[config.dataset.audio_column]
+    audio_array, sample_rate = audio_from_dataset_value(
+        audio_value,
+        fallback_sample_rate=config.mert.sample_rate,
+    )
+    shape = getattr(audio_array, "shape", None)
+    if shape is not None:
+        shape = [int(value) for value in shape]
+    elif hasattr(audio_array, "__len__"):
+        shape = [len(audio_array)]
+
+    return {
+        "split": split_name,
+        "index": index,
+        "song_id": row.get("song_id"),
+        "raw_audio_type": type(audio_value).__name__,
+        "raw_audio_module": type(audio_value).__module__,
+        "decoded_sample_rate": int(sample_rate),
+        "decoded_shape": shape,
+        "genre": row.get(config.dataset.label_column),
+        "genre_id": row.get(config.dataset.label_id_column),
+    }
 
 
 def _split_with_limit(split: str, max_samples: int | None) -> str:

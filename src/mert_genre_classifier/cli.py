@@ -5,7 +5,7 @@ import json
 from typing import Any
 
 from .config import load_config
-from .dataset import configured_splits, prepare_data
+from .dataset import configured_splits, inspect_audio_sample, prepare_data
 from .embeddings import extract_embeddings
 from .evaluate import evaluate_classifiers
 from .models import train_classifiers
@@ -30,6 +30,10 @@ def build_parser() -> argparse.ArgumentParser:
     prepare = subparsers.add_parser("prepare-data", help="Carrega e valida dataset/labels.")
     prepare.add_argument("--split", help="Split especifico. Omitido valida train/test da config.")
     prepare.add_argument("--max-samples", type=int, help="Limita exemplos por split.")
+
+    inspect = subparsers.add_parser("inspect-audio", help="Inspeciona uma amostra de audio sem carregar MERT.")
+    inspect.add_argument("--split", help="Split a inspecionar. Padrao: train_split da config.")
+    inspect.add_argument("--index", type=int, default=0, help="Indice da amostra no split.")
 
     extract = subparsers.add_parser("extract-embeddings", help="Extrai embeddings MERT em cache.")
     extract.add_argument("--split", help="Split especifico. Omitido extrai train/test da config.")
@@ -71,6 +75,10 @@ def main(argv: list[str] | None = None) -> int:
                 "labels": summary["labels"],
             }
         )
+        return 0
+
+    if args.command == "inspect-audio":
+        _print_json(inspect_audio_sample(config, split=args.split, index=args.index))
         return 0
 
     if args.command == "extract-embeddings":

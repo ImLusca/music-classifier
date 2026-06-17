@@ -95,6 +95,12 @@ python -m pip install -e ".[dev]"
 ```
 
 O pipeline agora tenta converter a coluna `audio` com `datasets.Audio` e tambem
-aceita valores brutos como caminho, bytes ou waveform. A dependencia
-`torchcodec` fica listada no projeto porque versoes recentes do `datasets` usam
-esse pacote para decodificar audio.
+aceita valores brutos como `AudioDecoder`, caminho, bytes ou waveform. A
+dependencia `torchcodec` fica listada no projeto porque versoes recentes do
+`datasets` usam esse pacote para decodificar audio.
+
+Para testar a decodificacao sem carregar o MERT:
+
+```bash
+python -m mert_genre_classifier -c configs/full_cuda.yaml inspect-audio --split train --index 0
+```

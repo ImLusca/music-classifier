@@ -9,6 +9,9 @@ def audio_from_dataset_value(audio_value: Any, fallback_sample_rate: int | None 
     if isinstance(audio_value, dict):
         return _audio_from_mapping(audio_value, fallback_sample_rate=fallback_sample_rate)
 
+    if _looks_like_torchcodec_decoder(audio_value):
+        return _audio_from_torchcodec_decoder(audio_value, fallback_sample_rate=fallback_sample_rate)
+
     if isinstance(audio_value, (str, Path)):
         return load_audio_file(audio_value)
 
@@ -25,7 +28,7 @@ def audio_from_dataset_value(audio_value: Any, fallback_sample_rate: int | None 
 
     raise ValueError(
         "Valor de audio inesperado. Esperado dict do Hugging Face Audio, caminho, "
-        f"bytes ou waveform; recebido {_describe_value(audio_value)}."
+        f"AudioDecoder, bytes ou waveform; recebido {_describe_value(audio_value)}."
     )
 
 
@@ -100,6 +103,11 @@ def resample_to_mono(audio_array: Any, source_rate: int, target_rate: int):
 
 def _audio_from_mapping(audio_value: dict[str, Any], fallback_sample_rate: int | None) -> tuple[Any, int]:
     if "array" in audio_value and audio_value["array"] is not None:
+        if _looks_like_torchcodec_decoder(audio_value["array"]):
+            return _audio_from_torchcodec_decoder(
+                audio_value["array"],
+                fallback_sample_rate=fallback_sample_rate,
+            )
         sample_rate = audio_value.get("sampling_rate", fallback_sample_rate)
         if sample_rate is None:
             raise ValueError("Audio do dataset contem `array`, mas nao contem `sampling_rate`.")
@@ -117,6 +125,21 @@ def _audio_from_mapping(audio_value: dict[str, Any], fallback_sample_rate: int |
     )
 
 
+def _audio_from_torchcodec_decoder(decoder: Any, fallback_sample_rate: int | None) -> tuple[Any, int]:
+    samples = decoder.get_all_samples()
+    data = getattr(samples, "data", None)
+    sample_rate = getattr(samples, "sample_rate", fallback_sample_rate)
+    if data is None:
+        raise ValueError("AudioDecoder retornou amostras sem atributo `data`.")
+    if sample_rate is None:
+        raise ValueError("AudioDecoder retornou amostras sem atributo `sample_rate`.")
+    return _detach_to_numpy_if_possible(data), int(sample_rate)
+
+
+def _looks_like_torchcodec_decoder(value: Any) -> bool:
+    return callable(getattr(value, "get_all_samples", None))
+
+
 def _looks_like_waveform(value: Any) -> bool:
     if isinstance(value, (list, tuple)):
         return True
@@ -131,3 +154,13 @@ def _describe_value(value: Any) -> str:
     if hasattr(value, "shape"):
         return f"{type_name} com shape {getattr(value, 'shape')}"
     return type_name
+
+
+def _detach_to_numpy_if_possible(value: Any) -> Any:
+    if hasattr(value, "detach"):
+        value = value.detach()
+    if hasattr(value, "cpu"):
+        value = value.cpu()
+    if hasattr(value, "numpy"):
+        return value.numpy()
+    return value
