@@ -79,3 +79,22 @@ Se `extract-embeddings` for executado em CPU com a config completa, o CLI emite
 um aviso. O comando ainda pode rodar, mas tende a ser lento. Para resultados
 finais, prefira CUDA.
 
+## 6. Troubleshooting: coluna de audio do Hugging Face
+
+Se aparecer um erro parecido com:
+
+```text
+Valor de audio inesperado; esperado dict com `array` e `sampling_rate`.
+```
+
+atualize o codigo e reinstale o pacote no ambiente remoto:
+
+```bash
+python -m pip install -U pip
+python -m pip install -e ".[dev]"
+```
+
+O pipeline agora tenta converter a coluna `audio` com `datasets.Audio` e tambem
+aceita valores brutos como caminho, bytes ou waveform. A dependencia
+`torchcodec` fica listada no projeto porque versoes recentes do `datasets` usam
+esse pacote para decodificar audio.

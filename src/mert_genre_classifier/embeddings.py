@@ -140,7 +140,17 @@ def extract_embeddings(
     iterator = range(start_index, len(dataset))
     for index in tqdm(iterator, desc=f"Extracting {split}", unit="track"):
         row = dataset[index]
-        audio_array, sample_rate = audio_from_dataset_value(row[config.dataset.audio_column])
+        try:
+            audio_array, sample_rate = audio_from_dataset_value(
+                row[config.dataset.audio_column],
+                fallback_sample_rate=config.mert.sample_rate,
+            )
+        except Exception as exc:
+            raise ValueError(
+                f"Falha ao ler audio no split `{split}`, indice {index}, "
+                f"song_id={row.get('song_id', 'desconhecido')}. "
+                "Confira se a coluna de audio foi baixada/decodificada corretamente."
+            ) from exc
         batch_audio.append(resample_to_mono(audio_array, sample_rate, config.mert.sample_rate))
         batch_labels.append(label_index_for_row(row, label_map, config))
         batch_ids.append(str(row.get("song_id", index)))
@@ -214,4 +224,3 @@ def _warn_if_cpu_full(
         f"--split {config.dataset.eval_split} --resume\n",
         file=sys.stderr,
     )
-

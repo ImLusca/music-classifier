@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Projeto de classificador de gêneros musicais com embeddings MERT congelados, pipeline local e execução CUDA opcional."
+    />
+    <title>MERT Genre Classifier</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header" aria-label="Navegação principal">
+      <a class="brand" href="#top" aria-label="MERT Genre Classifier">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>MERT Genre</span>
+      </a>
+      <nav class="nav-links" aria-label="Seções da página">
+        <a href="#pipeline">Pipeline</a>
+        <a href="#execucao">Execucao</a>
+        <a href="#resultados">Resultados</a>
+      </nav>
+      <a class="nav-action" href="../RUNBOOK.md">Runbook</a>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <img
+          class="hero-image"
+          src="assets/mert-genre-hero.png"
+          alt="Visual abstrato de uma onda sonora entrando em uma rede neural e saindo como faixas espectrais coloridas."
+        />
+        <div class="hero-shade" aria-hidden="true"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Áudio embeddings + classificadores leves</p>
+          <h1 id="hero-title">MERT Genre Classifier</h1>
+          <p class="hero-copy">
+            Um pipeline reproduzivel para transformar musicas em embeddings MERT,
+            treinar classificadores de gênero e avaliar o resultado com macro-F1.
+          </p>
+          <div class="hero-actions" aria-label="Ações principais">
+            <a class="button button-primary" href="#execucao">
+              <span aria-hidden="true">▶</span>
+              Rodar o projeto
+            </a>
+            <a class="button button-secondary" href="../README.md">
+              <span aria-hidden="true">↗</span>
+              Ver README
+            </a>
+          </div>
+          <dl class="hero-stats" aria-label="Resumo técnico">
+            <div>
+              <dt>Modelo</dt>
+              <dd>MERT-v1-95M</dd>
+            </div>
+            <div>
+              <dt>Dataset</dt>
+              <dd>lewtun/music_genres</dd>
+            </div>
+            <div>
+              <dt>Métrica</dt>
+              <dd>macro-F1</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="intro-band" aria-label="Resumo do projeto">
+        <div class="intro-grid">
+          <article>
+            <span class="section-kicker">Objetivo</span>
+            <h2>Classificar gênero musical sem fine-tuning pesado.</h2>
+          </article>
+          <p>
+            O MERT fica congelado como extrator de representações. Os embeddings
+            são cacheados em disco e alimentam uma regressão logística baseline e
+            uma MLP pequena, tornando os experimentos rápidos depois da primeira
+            inferência.
+          </p>
+        </div>
+      </section>
+
+      <section id="pipeline" class="section">
+        <div class="section-heading">
+          <span class="section-kicker">Pipeline</span>
+          <h2>Da faixa de áudio ao relatório de avaliação.</h2>
+        </div>
+        <div class="flow" aria-label="Etapas do pipeline">
+          <article class="flow-step">
+            <span class="step-number">01</span>
+            <h3>Dataset</h3>
+            <p>Carrega splits públicos, valida colunas e preserva o mapa de labels.</p>
+          </article>
+          <article class="flow-step">
+            <span class="step-number">02</span>
+            <h3>Embeddings</h3>
+            <p>Reamostra para 24 kHz, roda MERT congelado e salva vetores em cache.</p>
+          </article>
+          <article class="flow-step">
+            <span class="step-number">03</span>
+            <h3>Classificador</h3>
+            <p>Treina baseline linear e MLP sobre os vetores já extraídos.</p>
+          </article>
+          <article class="flow-step">
+            <span class="step-number">04</span>
+            <h3>Avaliação</h3>
+            <p>Gera macro-F1, accuracy, matriz de confusão e relatório por gênero.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="execucao" class="section split-section">
+        <div class="section-copy">
+          <span class="section-kicker">Execução</span>
+          <h2>Smoke test local, extração completa em CUDA quando fizer sentido.</h2>
+          <p>
+            O gargalo esperado é a extração dos embeddings. Por isso o projeto
+            tem uma configuração pequena para validar tudo localmente e outra
+            pronta para rodar o dataset completo numa máquina com GPU.
+          </p>
+          <div class="tag-row" aria-label="Modos de execução">
+            <span>CPU smoke</span>
+            <span>CUDA full</span>
+            <span>Cache retomavel</span>
+            <span>Artefatos portáveis</span>
+          </div>
+        </div>
+        <div class="terminal-panel" aria-label="Comandos principais">
+          <div class="terminal-tabs" role="tablist" aria-label="Escolha do comando">
+            <button class="tab-button active" type="button" data-tab="local">Local</button>
+            <button class="tab-button" type="button" data-tab="cuda">CUDA</button>
+            <button class="tab-button" type="button" data-tab="predict">Predict</button>
+          </div>
+          <pre class="code-block active" data-panel="local"><code>python -m mert_genre_classifier -c configs/local_smoke.yaml prepare-data
+python -m mert_genre_classifier -c configs/local_smoke.yaml extract-embeddings --resume
+python -m mert_genre_classifier -c configs/local_smoke.yaml train
+python -m mert_genre_classifier -c configs/local_smoke.yaml evaluate</code></pre>
+          <pre class="code-block" data-panel="cuda"><code>python -m mert_genre_classifier -c configs/full_cuda.yaml prepare-data
+python -m mert_genre_classifier -c configs/full_cuda.yaml extract-embeddings --split train --resume
+python -m mert_genre_classifier -c configs/full_cuda.yaml extract-embeddings --split test --resume</code></pre>
+          <pre class="code-block" data-panel="predict"><code>python -m mert_genre_classifier -c configs/full_cuda.yaml predict caminho/para/musica.wav --model mlp --top-k 5</code></pre>
+          <button class="copy-button" type="button" data-copy-active>
+            <span aria-hidden="true">⧉</span>
+            Copiar
+          </button>
+        </div>
+      </section>
+
+      <section id="resultados" class="section results-section">
+        <div class="section-heading">
+          <span class="section-kicker">Resultados esperados</span>
+          <h2>O projeto ja nasce preparado para mostrar qualidade e diagnostico.</h2>
+        </div>
+        <div class="result-grid">
+          <article>
+            <h3>Macro-F1 como norte</h3>
+            <p>
+              A métrica principal evita que gêneros frequentes escondam classes
+              mais difíceis ou desbalanceadas.
+            </p>
+          </article>
+          <article>
+            <h3>Matriz de confusão</h3>
+            <p>
+              Os relatórios em CSV ajudam a ver quais gêneros se confundem e
+              onde melhorar o dataset ou o classificador.
+            </p>
+          </article>
+          <article>
+            <h3>Predição top-k</h3>
+            <p>
+              A CLI retorna probabilidades ordenadas, útil para demonstrações e
+              análise de faixas ambivalentes.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>MERT Genre Classifier · projeto local de classificação musical</p>
+      <div>
+        <a href="../README.md">README</a>
+        <a href="../RUNBOOK.md">RUNBOOK</a>
+      </div>
+    </footer>
+
+    <script src="main.js"></script>
+  </body>
+</html>

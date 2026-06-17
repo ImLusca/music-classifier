@@ -31,3 +31,7 @@ python -m mert_genre_classifier -c configs/local_smoke.yaml evaluate
 
 Para execucao completa em CUDA, veja [RUNBOOK.md](RUNBOOK.md).
 
+## Página de apresentação
+
+A vitrine estática do projeto está em [site/index.html](site/index.html). Ela
+pode ser aberta diretamente no navegador.

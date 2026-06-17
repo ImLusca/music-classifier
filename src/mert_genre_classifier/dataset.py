@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+import sys
 from typing import Any
 
 from .config import AppConfig
@@ -28,6 +29,7 @@ def load_dataset_split(config: AppConfig, split: str, max_samples: int | None = 
 
     requested_split = _split_with_limit(split, max_samples)
     dataset = load_dataset(config.dataset.name, split=requested_split)
+    dataset = cast_audio_for_decoding(dataset, config)
     if max_samples is not None:
         dataset = dataset.select(range(min(max_samples, len(dataset))))
     return dataset
@@ -50,6 +52,29 @@ def disable_audio_decoding(dataset: Any, config: AppConfig):
     except ModuleNotFoundError:
         return dataset
     return dataset.cast_column(config.dataset.audio_column, Audio(decode=False))
+
+
+def cast_audio_for_decoding(dataset: Any, config: AppConfig):
+    if config.dataset.audio_column not in dataset.column_names:
+        return dataset
+    try:
+        from datasets import Audio
+    except ModuleNotFoundError:
+        return dataset
+
+    try:
+        return dataset.cast_column(
+            config.dataset.audio_column,
+            Audio(sampling_rate=config.mert.sample_rate),
+        )
+    except Exception as exc:
+        print(
+            "AVISO: nao foi possivel converter a coluna de audio com datasets.Audio; "
+            "o pipeline tentara decodificar o valor bruto. "
+            f"Motivo: {exc}",
+            file=sys.stderr,
+        )
+        return dataset
 
 
 def build_label_map(rows: Iterable[dict[str, Any]], label_column: str, label_id_column: str | None = None):
