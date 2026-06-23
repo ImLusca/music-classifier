@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Apresentação para feira acadêmica do MERT Genre Classifier, um projeto que identifica gêneros musicais a partir do áudio."
+    />
+    <title>MERT Genre Classifier · Feira Acadêmica</title>
+    <link rel="stylesheet" href="publico.css" />
+  </head>
+  <body>
+    <header class="topbar" aria-label="Navegação principal">
+      <a class="brand" href="#inicio" aria-label="MERT Genre Classifier">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>MERT Genre</span>
+      </a>
+      <nav class="nav" aria-label="Seções">
+        <a href="#conceitos">Conceitos</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#demo">Demo</a>
+        <a href="#limites">Limites</a>
+      </nav>
+      <a class="top-action" href="index.html">Versão técnica</a>
+    </header>
+
+    <main id="inicio">
+      <section class="hero" aria-labelledby="hero-title">
+        <img
+          class="hero-image"
+          src="assets/mert-genre-hero.png"
+          alt="Onda sonora passando por uma rede inteligente e se separando em faixas coloridas."
+        />
+        <div class="hero-shade" aria-hidden="true"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Música, dados e inteligência artificial</p>
+          <h1 id="hero-title">Como uma IA reconhece o gênero de uma música pelo som?</h1>
+          <p class="hero-copy">
+            Esta demonstração mostra como um computador pode analisar uma faixa,
+            transformar o áudio em dados e sugerir categorias como rock,
+            eletrônico, jazz, hip-hop e outros estilos.
+          </p>
+          <div class="hero-actions" aria-label="Ações principais">
+            <a class="button primary" href="#como-funciona">
+              <span aria-hidden="true">▶</span>
+              Entender a ideia
+            </a>
+            <a class="button secondary" href="../PERGUNTAS_PREPARACAO.md">
+              <span aria-hidden="true">↗</span>
+              Perguntas da apresentação
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="conceitos" class="band">
+        <div class="band-grid">
+          <article>
+            <span class="section-kicker">O assunto</span>
+            <h2>Classificar música é ensinar o sistema a reconhecer padrões sonoros.</h2>
+          </article>
+          <p>
+            Gênero musical não é apenas uma etiqueta: ele aparece em ritmo,
+            timbre, instrumentos, energia e textura. O projeto usa exemplos já
+            rotulados para aprender esses padrões e testar se consegue
+            reconhecê-los em novas faixas.
+          </p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="value-grid" aria-label="Conceitos principais">
+          <article>
+            <span class="tile-icon" aria-hidden="true">◎</span>
+            <h3>Áudio como dado</h3>
+            <p>A música deixa de ser apenas algo que ouvimos e passa a ser uma sequência de sinais que o computador consegue medir.</p>
+          </article>
+          <article>
+            <span class="tile-icon coral" aria-hidden="true">◆</span>
+            <h3>Aprendizado por exemplos</h3>
+            <p>O classificador observa músicas já identificadas por gênero e aprende relações úteis entre som e categoria.</p>
+          </article>
+          <article>
+            <span class="tile-icon amber" aria-hidden="true">◧</span>
+            <h3>Previsão com incerteza</h3>
+            <p>A saída não precisa ser uma verdade absoluta: ela pode mostrar o gênero mais provável e alternativas próximas.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="como-funciona" class="section split">
+        <div class="section-copy">
+          <span class="section-kicker">Como funciona</span>
+          <h2>Uma música vira dados, e os dados viram uma sugestão.</h2>
+          <p>
+            O MERT funciona como um “ouvido treinado”: ele não entende música
+            como uma pessoa, mas consegue extrair uma representação matemática do
+            áudio. Depois, um classificador usa essa representação para sugerir
+            o gênero mais compatível.
+          </p>
+        </div>
+        <ol class="simple-steps">
+          <li>
+            <span>1</span>
+            <div>
+              <h3>Entrada sonora</h3>
+              <p>O sistema lê o arquivo de áudio diretamente, sem depender do nome da música ou de metadados.</p>
+            </div>
+          </li>
+          <li>
+            <span>2</span>
+            <div>
+              <h3>Resumo numérico</h3>
+              <p>O MERT transforma a faixa em um vetor, uma espécie de assinatura matemática do som.</p>
+            </div>
+          </li>
+          <li>
+            <span>3</span>
+            <div>
+              <h3>Classificação</h3>
+              <p>Um modelo menor compara essa assinatura com exemplos conhecidos e sugere o gênero mais provável.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section id="demo" class="section demo-section">
+        <div class="section-heading">
+          <span class="section-kicker">Na feira</span>
+          <h2>O ideal é mostrar a ideia antes dos detalhes técnicos.</h2>
+        </div>
+        <div class="demo-grid">
+          <article>
+            <h3>1. Começar com a pergunta</h3>
+            <p>“Será que um computador consegue reconhecer estilo musical só ouvindo o áudio?”</p>
+          </article>
+          <article>
+            <h3>2. Mostrar o caminho</h3>
+            <p>Explicar as três etapas: ler o som, transformar em números e comparar com exemplos.</p>
+          </article>
+          <article>
+            <h3>3. Discutir o resultado</h3>
+            <p>Mostrar a previsão, comentar acertos e explicar por que alguns gêneros são mais difíceis.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="limites" class="section limits">
+        <div class="section-copy">
+          <span class="section-kicker">Transparência</span>
+          <h2>A parte mais interessante é também a mais humana: gênero pode ser subjetivo.</h2>
+          <p>
+            Gênero musical pode ser subjetivo: muitas faixas misturam estilos e
+            algumas categorias são próximas. Por isso, o resultado deve ser
+            visto como uma hipótese bem informada, não como uma resposta final.
+          </p>
+        </div>
+        <div class="limit-list" aria-label="Limites do projeto">
+          <p>O modelo aprende a partir dos rótulos disponíveis; se os rótulos forem confusos, ele também pode se confundir.</p>
+          <p>Músicas híbridas, como rock com eletrônico ou jazz com hip-hop, podem ter mais de uma resposta plausível.</p>
+          <p>A demonstração serve para explicar o conceito e abrir discussão, não para substituir análise musical especializada.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>MERT Genre Classifier · apresentação para feira acadêmica</p>
+      <div>
+        <a href="index.html">Versão técnica</a>
+        <a href="../README.md">README</a>
+      </div>
+    </footer>
+  </body>
+</html>

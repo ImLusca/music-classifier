@@ -18,10 +18,10 @@
       </a>
       <nav class="nav-links" aria-label="Seções da página">
         <a href="#pipeline">Pipeline</a>
-        <a href="#execucao">Execucao</a>
+        <a href="#execucao">Execução</a>
         <a href="#resultados">Resultados</a>
       </nav>
-      <a class="nav-action" href="../RUNBOOK.md">Runbook</a>
+      <a class="nav-action" href="publico.html">Versão pública</a>
     </header>
 
     <main id="top">
@@ -36,7 +36,7 @@
           <p class="eyebrow">Áudio embeddings + classificadores leves</p>
           <h1 id="hero-title">MERT Genre Classifier</h1>
           <p class="hero-copy">
-            Um pipeline reproduzivel para transformar musicas em embeddings MERT,
+            Um pipeline reproduzível para transformar músicas em embeddings MERT,
             treinar classificadores de gênero e avaliar o resultado com macro-F1.
           </p>
           <div class="hero-actions" aria-label="Ações principais">
@@ -61,6 +61,10 @@
             <div>
               <dt>Métrica</dt>
               <dd>macro-F1</dd>
+            </div>
+            <div>
+              <dt>Execução</dt>
+              <dd>Colab/CUDA</dd>
             </div>
           </dl>
         </div>
@@ -94,16 +98,21 @@
           </article>
           <article class="flow-step">
             <span class="step-number">02</span>
+            <h3>Diagnóstico</h3>
+            <p>Inspeciona uma amostra de áudio e confirma a decodificação antes do MERT.</p>
+          </article>
+          <article class="flow-step">
+            <span class="step-number">03</span>
             <h3>Embeddings</h3>
             <p>Reamostra para 24 kHz, roda MERT congelado e salva vetores em cache.</p>
           </article>
           <article class="flow-step">
-            <span class="step-number">03</span>
+            <span class="step-number">04</span>
             <h3>Classificador</h3>
             <p>Treina baseline linear e MLP sobre os vetores já extraídos.</p>
           </article>
           <article class="flow-step">
-            <span class="step-number">04</span>
+            <span class="step-number">05</span>
             <h3>Avaliação</h3>
             <p>Gera macro-F1, accuracy, matriz de confusão e relatório por gênero.</p>
           </article>
@@ -121,22 +130,25 @@
           </p>
           <div class="tag-row" aria-label="Modos de execução">
             <span>CPU smoke</span>
-            <span>CUDA full</span>
-            <span>Cache retomavel</span>
+            <span>Colab/CUDA</span>
+            <span>Cache retomável</span>
             <span>Artefatos portáveis</span>
+            <span>AudioDecoder</span>
           </div>
         </div>
         <div class="terminal-panel" aria-label="Comandos principais">
           <div class="terminal-tabs" role="tablist" aria-label="Escolha do comando">
             <button class="tab-button active" type="button" data-tab="local">Local</button>
-            <button class="tab-button" type="button" data-tab="cuda">CUDA</button>
+            <button class="tab-button" type="button" data-tab="cuda">Colab/CUDA</button>
             <button class="tab-button" type="button" data-tab="predict">Predict</button>
           </div>
           <pre class="code-block active" data-panel="local"><code>python -m mert_genre_classifier -c configs/local_smoke.yaml prepare-data
 python -m mert_genre_classifier -c configs/local_smoke.yaml extract-embeddings --resume
 python -m mert_genre_classifier -c configs/local_smoke.yaml train
 python -m mert_genre_classifier -c configs/local_smoke.yaml evaluate</code></pre>
-          <pre class="code-block" data-panel="cuda"><code>python -m mert_genre_classifier -c configs/full_cuda.yaml prepare-data
+          <pre class="code-block" data-panel="cuda"><code>python -m pip install -e ".[dev]"
+python -m mert_genre_classifier -c configs/full_cuda.yaml prepare-data
+python -m mert_genre_classifier -c configs/full_cuda.yaml inspect-audio --split train --index 0
 python -m mert_genre_classifier -c configs/full_cuda.yaml extract-embeddings --split train --resume
 python -m mert_genre_classifier -c configs/full_cuda.yaml extract-embeddings --split test --resume</code></pre>
           <pre class="code-block" data-panel="predict"><code>python -m mert_genre_classifier -c configs/full_cuda.yaml predict caminho/para/musica.wav --model mlp --top-k 5</code></pre>
@@ -150,7 +162,7 @@ python -m mert_genre_classifier -c configs/full_cuda.yaml extract-embeddings --s
       <section id="resultados" class="section results-section">
         <div class="section-heading">
           <span class="section-kicker">Resultados esperados</span>
-          <h2>O projeto ja nasce preparado para mostrar qualidade e diagnostico.</h2>
+          <h2>O projeto já nasce preparado para mostrar qualidade e diagnóstico.</h2>
         </div>
         <div class="result-grid">
           <article>
@@ -172,6 +184,13 @@ python -m mert_genre_classifier -c configs/full_cuda.yaml extract-embeddings --s
             <p>
               A CLI retorna probabilidades ordenadas, útil para demonstrações e
               análise de faixas ambivalentes.
+            </p>
+          </article>
+          <article>
+            <h3>Colab pronto</h3>
+            <p>
+              A extração completa roda em GPU com cache retomável e diagnóstico
+              de áudio antes da etapa mais demorada.
             </p>
           </article>
         </div>

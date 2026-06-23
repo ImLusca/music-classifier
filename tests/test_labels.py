@@ -19,19 +19,30 @@ class LabelMapTests(unittest.TestCase):
         self.assertEqual(label_map["label_to_index"]["Rock"], 2)
         self.assertEqual(label_map["source_id_to_index"]["0"], 0)
 
-    def test_label_index_for_row_prefers_label_text(self):
+    def test_label_index_for_row_prefers_source_id(self):
+        config = AppConfig()
+        label_map = {
+            "labels": ["Unknown", "Electronic", "Rock"],
+            "label_to_index": {"Unknown": 0, "Electronic": 1, "Rock": 2},
+            "source_id_to_index": {"0": 0, "7": 2},
+        }
+
+        index = label_index_for_row({"genre": "Unknown", "genre_id": 7}, label_map, config)
+
+        self.assertEqual(index, 2)
+
+    def test_label_index_for_row_falls_back_to_label_text(self):
         config = AppConfig()
         label_map = {
             "labels": ["Electronic", "Rock"],
             "label_to_index": {"Electronic": 0, "Rock": 1},
-            "source_id_to_index": {"7": 1},
+            "source_id_to_index": {},
         }
 
-        index = label_index_for_row({"genre": "Rock", "genre_id": 7}, label_map, config)
+        index = label_index_for_row({"genre": "Rock", "genre_id": None}, label_map, config)
 
         self.assertEqual(index, 1)
 
 
 if __name__ == "__main__":
     unittest.main()
-

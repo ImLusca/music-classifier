@@ -213,7 +213,7 @@ h3 {
 
 .hero-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
   gap: 12px;
   width: min(660px, 100%);
   margin: 52px 0 0;
@@ -274,7 +274,7 @@ h3 {
 
 .flow {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 16px;
   margin-top: 36px;
 }
@@ -388,7 +388,7 @@ h3 {
 
 .result-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 16px;
   margin-top: 34px;
 }
@@ -407,6 +407,10 @@ h3 {
 
 .result-grid article:nth-child(3) {
   border-top-color: rgba(244, 176, 77, 0.75);
+}
+
+.result-grid article:nth-child(4) {
+  border-top-color: rgba(123, 216, 143, 0.75);
 }
 
 .site-footer {

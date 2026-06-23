@@ -6,9 +6,9 @@ from typing import Any
 
 from .config import load_config
 from .dataset import configured_splits, inspect_audio_sample, prepare_data
-from .embeddings import extract_embeddings
+from .embeddings import extract_embeddings, repair_embedding_labels
 from .evaluate import evaluate_classifiers
-from .models import train_classifiers
+from .models import demo_status, train_classifiers
 from .paths import labels_path, prepare_summary_path
 from .predict import predict_audio
 
@@ -40,6 +40,9 @@ def build_parser() -> argparse.ArgumentParser:
     extract.add_argument("--max-samples", type=int, help="Limita exemplos do split.")
     _add_resume_flags(extract)
 
+    repair = subparsers.add_parser("repair-labels", help="Corrige labels de embeddings ja extraidos sem recalcular MERT.")
+    repair.add_argument("--split", help="Split especifico. Omitido repara train/test da config.")
+
     train = subparsers.add_parser("train", help="Treina classificadores sobre embeddings.")
     train.add_argument("--train-split", help="Split de treino. Padrao: train_split da config.")
     train.add_argument("--model", default="all", help="`logistic`, `mlp` ou `all`.")
@@ -54,6 +57,8 @@ def build_parser() -> argparse.ArgumentParser:
     predict.add_argument("audio_path", help="Caminho para arquivo de audio.")
     predict.add_argument("--model", default="mlp", help="Classificador salvo a usar.")
     predict.add_argument("--top-k", type=int, default=5, help="Numero de classes a mostrar.")
+
+    subparsers.add_parser("demo-status", help="Mostra se os artefatos locais estao prontos para demo.")
 
     return parser
 
@@ -95,6 +100,18 @@ def main(argv: list[str] | None = None) -> int:
         _print_json({"embedding_paths": paths})
         return 0
 
+    if args.command == "repair-labels":
+        splits = [args.split] if args.split else configured_splits(config)
+        _print_json(
+            {
+                "repaired": {
+                    split: repair_embedding_labels(config, split)
+                    for split in splits
+                }
+            }
+        )
+        return 0
+
     if args.command == "train":
         saved = train_classifiers(
             config,
@@ -118,10 +135,15 @@ def main(argv: list[str] | None = None) -> int:
                     "macro_f1": metrics["macro_f1"],
                     "accuracy": metrics["accuracy"],
                     "num_examples": metrics["num_examples"],
+                    "label_distribution": metrics["label_distribution"],
                 }
                 for name, metrics in results.items()
             }
         )
+        return 0
+
+    if args.command == "demo-status":
+        _print_json(demo_status(config))
         return 0
 
     if args.command == "predict":

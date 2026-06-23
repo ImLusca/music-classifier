@@ -36,6 +36,18 @@ def load_embeddings(config: AppConfig, split: str, max_samples: int | None = Non
         "label_names": label_names,
         "item_ids": item_ids,
         "path": path,
+        "label_distribution": label_distribution(labels, label_names),
+    }
+
+
+def label_distribution(labels: Any, label_names: list[str]) -> dict[str, int]:
+    from collections import Counter
+
+    counts = Counter(int(label) for label in labels)
+    return {
+        label_names[index]: int(counts.get(index, 0))
+        for index in range(len(label_names))
+        if counts.get(index, 0) > 0
     }
 
 
@@ -107,3 +119,38 @@ def load_classifier(config: AppConfig, model_name: str) -> dict[str, Any]:
         raise ValueError(f"Arquivo de classificador invalido: {path}")
     return bundle
 
+
+def demo_status(config: AppConfig) -> dict[str, Any]:
+    splits = [config.dataset.train_split, config.dataset.eval_split]
+    embeddings = {
+        split: {
+            "path": str(embeddings_path(config, split)),
+            "exists": embeddings_path(config, split).exists(),
+        }
+        for split in splits
+    }
+    classifiers = {
+        name: {
+            "path": str(classifier_path(config, name)),
+            "exists": classifier_path(config, name).exists(),
+        }
+        for name in MODEL_NAMES
+    }
+    ready_for_train = embeddings[config.dataset.train_split]["exists"]
+    ready_for_evaluate = (
+        embeddings[config.dataset.eval_split]["exists"]
+        and any(item["exists"] for item in classifiers.values())
+    )
+    ready_for_predict = any(item["exists"] for item in classifiers.values())
+    return {
+        "run_name": config.run_name,
+        "ready_for_train": ready_for_train,
+        "ready_for_evaluate": ready_for_evaluate,
+        "ready_for_predict": ready_for_predict,
+        "embeddings": embeddings,
+        "classifiers": classifiers,
+        "notes": [
+            "Para treino/avaliacao local, copie os embeddings do Colab para data/processed/.",
+            "Para predizer uma musica nova ao vivo, deixe um classificador treinado e o MERT baixado/cacheado.",
+        ],
+    }

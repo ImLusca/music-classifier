@@ -23,6 +23,13 @@ def evaluate_classifiers(
     x_eval = data["embeddings"]
     y_eval = data["labels"]
     labels = data["label_names"]
+    if len(set(int(label) for label in y_eval)) < 2 and len(y_eval) > 1:
+        only_label = labels[int(y_eval[0])] if len(y_eval) else "desconhecido"
+        raise ValueError(
+            "O split de avaliacao contem apenas uma classe "
+            f"({only_label}). Isso geralmente indica embeddings antigos com labels "
+            "mapeados incorretamente. Reextraia train/test apos atualizar o codigo."
+        )
 
     requested = MODEL_NAMES if model_name == "all" else (model_name,)
     results: dict[str, dict[str, Any]] = {}
@@ -49,6 +56,7 @@ def evaluate_classifiers(
             "accuracy": accuracy,
             "num_examples": int(len(y_eval)),
             "labels": labels,
+            "label_distribution": data["label_distribution"],
             "classification_report": report,
             "embedding_path": str(data["path"]),
         }
@@ -58,4 +66,3 @@ def evaluate_classifiers(
         )
         results[name] = metrics
     return results
-

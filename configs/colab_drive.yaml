@@ -1,0 +1,41 @@
+run_name: full_cuda
+seed: 42
+
+dataset:
+  name: lewtun/music_genres
+  train_split: train
+  eval_split: test
+  audio_column: audio
+  label_column: genre
+  label_id_column: genre_id
+
+mert:
+  model_name: m-a-p/MERT-v1-95M
+  sample_rate: 24000
+  layer: last
+  pooling: mean
+
+runtime:
+  device: auto
+  batch_size_cpu: 1
+  batch_size_cuda: 16
+  cpu_full_warning_threshold: 1000
+
+embedding:
+  max_samples_per_split:
+  resume: true
+  save_every_batches: 10
+
+classifier:
+  logistic_max_iter: 2000
+  logistic_class_weight: balanced
+  mlp_hidden_layer_sizes: [256, 64]
+  mlp_max_iter: 500
+  mlp_alpha: 0.0001
+  mlp_early_stopping: true
+
+artifacts:
+  processed_dir: /content/drive/MyDrive/mert-genre-classifier/data/processed
+  models_dir: /content/drive/MyDrive/mert-genre-classifier/models
+  reports_dir: /content/drive/MyDrive/mert-genre-classifier/reports
+

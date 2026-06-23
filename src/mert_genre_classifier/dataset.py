@@ -19,7 +19,12 @@ def configured_splits(config: AppConfig) -> list[str]:
     return unique
 
 
-def load_dataset_split(config: AppConfig, split: str, max_samples: int | None = None):
+def load_dataset_split(
+    config: AppConfig,
+    split: str,
+    max_samples: int | None = None,
+    decode_audio: bool = True,
+):
     try:
         from datasets import load_dataset
     except ModuleNotFoundError as exc:
@@ -30,7 +35,10 @@ def load_dataset_split(config: AppConfig, split: str, max_samples: int | None = 
 
     requested_split = _split_with_limit(split, max_samples)
     dataset = load_dataset(config.dataset.name, split=requested_split)
-    dataset = cast_audio_for_decoding(dataset, config)
+    if decode_audio:
+        dataset = cast_audio_for_decoding(dataset, config)
+    else:
+        dataset = disable_audio_decoding(dataset, config)
     if max_samples is not None:
         dataset = dataset.select(range(min(max_samples, len(dataset))))
     return dataset
@@ -120,17 +128,17 @@ def build_label_map(rows: Iterable[dict[str, Any]], label_column: str, label_id_
 
 
 def label_index_for_row(row: dict[str, Any], label_map: dict[str, Any], config: AppConfig) -> int:
-    label = row.get(config.dataset.label_column)
-    if label is not None:
-        label_text = str(label)
-        if label_text in label_map["label_to_index"]:
-            return int(label_map["label_to_index"][label_text])
-
     label_id = row.get(config.dataset.label_id_column)
     if label_id is not None:
         key = str(int(label_id))
         if key in label_map["source_id_to_index"]:
             return int(label_map["source_id_to_index"][key])
+
+    label = row.get(config.dataset.label_column)
+    if label is not None:
+        label_text = str(label)
+        if label_text in label_map["label_to_index"]:
+            return int(label_map["label_to_index"][label_text])
 
     raise ValueError(f"Nao foi possivel mapear label para a linha: {row}")
 
@@ -158,7 +166,12 @@ def prepare_data(config: AppConfig, split: str | None = None, max_samples: int |
     }
 
     for split_name in splits:
-        dataset = load_dataset_split(config, split_name, max_samples=effective_max_samples)
+        dataset = load_dataset_split(
+            config,
+            split_name,
+            max_samples=effective_max_samples,
+            decode_audio=False,
+        )
         validate_dataset_columns(dataset, config)
         summary["splits"][split_name] = {
             "rows": len(dataset),
@@ -166,8 +179,7 @@ def prepare_data(config: AppConfig, split: str | None = None, max_samples: int |
             "max_samples": effective_max_samples,
         }
 
-        label_dataset = disable_audio_decoding(dataset, config)
-        for row in label_dataset:
+        for row in dataset:
             label_rows.append(
                 {
                     config.dataset.label_column: row[config.dataset.label_column],

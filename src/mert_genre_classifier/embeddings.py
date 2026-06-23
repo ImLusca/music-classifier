@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+import shutil
 from typing import Any
 
 from .audio import audio_from_dataset_value, load_audio_file, resample_to_mono
@@ -179,6 +180,48 @@ def extract_embeddings(
     return final_path
 
 
+def repair_embedding_labels(config: AppConfig, split: str) -> dict[str, Any]:
+    import numpy as np
+
+    path = embeddings_path(config, split)
+    if not path.exists():
+        raise FileNotFoundError(f"Embeddings nao encontrados em {path}.")
+
+    existing = np.load(path, allow_pickle=True)
+    embeddings = existing["embeddings"]
+    item_ids = [str(value) for value in existing["item_ids"]]
+    old_labels = existing["labels"]
+    label_map = load_or_prepare_label_map(config)
+    dataset = load_dataset_split(
+        config,
+        split,
+        max_samples=len(old_labels),
+        decode_audio=False,
+    )
+    validate_dataset_columns(dataset, config)
+    if len(dataset) != len(old_labels):
+        raise ValueError(
+            f"Split `{split}` tem {len(dataset)} linhas, mas o arquivo de embeddings tem "
+            f"{len(old_labels)} labels. Nao e seguro reparar automaticamente."
+        )
+
+    new_labels = [label_index_for_row(dataset[index], label_map, config) for index in range(len(dataset))]
+    backup_path = path.with_name(path.stem + ".before-label-repair.npz")
+    if not backup_path.exists():
+        shutil.copy2(path, backup_path)
+
+    _save_npz(path, embeddings, new_labels, item_ids, label_map, split, config)
+    old_distribution = _label_distribution(old_labels, label_map["labels"])
+    new_distribution = _label_distribution(new_labels, label_map["labels"])
+    return {
+        "path": str(path),
+        "backup_path": str(backup_path),
+        "num_examples": int(len(new_labels)),
+        "old_distribution": old_distribution,
+        "new_distribution": new_distribution,
+    }
+
+
 def _save_npz(
     path: Path,
     embeddings: list[Any],
@@ -224,3 +267,14 @@ def _warn_if_cpu_full(
         f"--split {config.dataset.eval_split} --resume\n",
         file=sys.stderr,
     )
+
+
+def _label_distribution(labels: Any, label_names: list[str]) -> dict[str, int]:
+    from collections import Counter
+
+    counts = Counter(int(label) for label in labels)
+    return {
+        label_names[index]: int(counts.get(index, 0))
+        for index in range(len(label_names))
+        if counts.get(index, 0) > 0
+    }

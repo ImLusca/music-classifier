@@ -31,7 +31,13 @@ python -m mert_genre_classifier -c configs/local_smoke.yaml evaluate
 
 Para execucao completa em CUDA, veja [RUNBOOK.md](RUNBOOK.md).
 
+Para Colab com Google Drive persistente, use
+[configs/colab_drive.yaml](configs/colab_drive.yaml).
+
 ## Página de apresentação
 
 A vitrine estática do projeto está em [site/index.html](site/index.html). Ela
 pode ser aberta diretamente no navegador.
+
+Também há uma versão para feira acadêmica em
+[site/publico.html](site/publico.html).
